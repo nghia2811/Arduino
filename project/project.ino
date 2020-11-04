@@ -1,5 +1,6 @@
 #include <SocketIoClient.h>
 #include <ESP8266WiFi.h>
+#include <ArduinoJson.h>
 
 SocketIoClient client;
 const char* ssid = "XOM TRO VUI VE 4";          //Tên mạng Wifi mà Socket server của bạn đang kết nối
@@ -74,6 +75,29 @@ void left(const char * payload, size_t length) {
   phaitien();
 }
 
+void getJson(const char * payload, size_t length) {
+  StaticJsonDocument<200> doc;
+  DeserializationError error = deserializeJson(doc, payload);
+
+  // Test if parsing succeeds.
+  if (error) {
+    Serial.print(F("deserializeJson() failed: "));
+    return;
+  }
+
+  // Fetch values.
+  //
+  // Most of the time, you can rely on the implicit casts.
+  // In other case, you can do root["time"].as<long>();
+  const char* huongdi = doc["huongdi"];
+  const char* khoangcach = doc["khoangcach"];
+
+  // Print values.
+  Serial.println(huongdi);
+  Serial.println(khoangcach);
+
+}
+
 void setup() {
   pinMode(D1, OUTPUT);
   pinMode(D2, OUTPUT);
@@ -91,15 +115,16 @@ void setup() {
   }
 
   Serial.println("Connected");
-  Serial.println(F("Di chi IP cua ESP8266 (Socket Client ESP8266): "));
+  Serial.println(F("Dia chi IP cua ESP8266 (Socket Client ESP8266): "));
   Serial.println(WiFi.localIP());
+
 
   // Setup Connection
   if (useSSL) {
     client.beginSSL(host, port, path, sslFingerprint);
   } else {
-    //  client.begin(host, port, path);  //kết nối server cục bộ, thay host = 192.168.x.x tùy theo địa chỉ ip
-    client.begin(host);              //kết nối server heroku
+    client.begin(host, port, path);  //kết nối server cục bộ, thay host = 192.168.x.x tùy theo địa chỉ ip
+    //      client.begin(host);              //kết nối server heroku
     Serial.println("Ket noi thanh cong");
   }
 
@@ -111,6 +136,7 @@ void setup() {
   client.on("left", left);
   client.on("right", right);
   client.on("stop", Stop);
+  client.on("commands-from-user", getJson);
 }
 
 void loop() {
