@@ -5,7 +5,8 @@ SocketIoClient client;
 const char* ssid = "XOM TRO VUI VE 4";          //Tên mạng Wifi mà Socket server của bạn đang kết nối
 const char* password = "xomtrovuive4";
 
-char host[] = "first-server-nghia.herokuapp.com";  //Địa chỉ IP dịch vụ, hãy thay đổi nó theo địa chỉ IP Socket server của bạn.
+//char host[] = "first-server-nghia.herokuapp.com";  //Địa chỉ IP dịch vụ, hãy thay đổi nó theo địa chỉ IP Socket server của bạn.
+char host[] = "192.168.1.185";
 int port = 3000;
 char path[] = "/socket.io/?transport=websocket"; // Socket.IO Base Path
 bool useSSL = false; // Use SSL Authentication
