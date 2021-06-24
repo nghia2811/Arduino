@@ -1,19 +1,23 @@
 #include <SocketIoClient.h>
 #include <ESP8266WiFi.h>
 #include <ArduinoJson.h>
+#include <stdio.h>
+//#include <stdlib.h>   //for exit(0), system("cls")
+//#include <conio.h>    //For kbhit, getch()
+//#include <time.h>     //For clock(),clock_t
 
 SocketIoClient client;
-const char* ssid = "XOM TRO VUI VE 4";          //Tên mạng Wifi mà Socket server của bạn đang kết nối
-const char* password = "xomtrovuive4";
+const char* ssid = "Sườn xào chua ngọt";          //Tên mạng Wifi mà Socket server của bạn đang kết nối
+const char* password = "28112404";
 
-//char host[] = "first-server-nghia.herokuapp.com";  //Địa chỉ IP dịch vụ, hãy thay đổi nó theo địa chỉ IP Socket server của bạn.
-char host[] = "192.168.1.185";
+char host[] = "first-server-nghia.herokuapp.com";  //Địa chỉ IP dịch vụ, hãy thay đổi nó theo địa chỉ IP Socket server của bạn.
+//char host[] = "192.168.43.30";
 int port = 3000;
 char path[] = "/socket.io/?transport=websocket"; // Socket.IO Base Path
 bool useSSL = false; // Use SSL Authentication
 const char * sslFingerprint = "";  // SSL Certificate Fingerprint
 
-int Speed = 800;
+int Speed = 1500;
 int motor1_d = D1;
 int motor1_a = D2;
 int motor2_d = D7;
@@ -74,6 +78,20 @@ void left(const char * payload, size_t length) {
   trailui();
   phaitien();
 }
+//
+//void delay(int ms)  //delay function
+//{
+//    clock_t timeDelay = ms + clock();    //Step up the difference from clock delay
+//    while (timeDelay > clock());         //stop when the clock is higher than time delay
+//}
+//
+//int counter(int value){
+//    while(!kbhit() && second <= value){     //keep looping while the user didn't hit any key and flag is 0
+//            forward();           //print out the new data, delay for 1000 millisecond and increase 1 second.
+//            delay(1000);
+//            second += 1;
+//        }
+//}
 
 void getJson(const char * payload, size_t length) {
   StaticJsonDocument<200> doc;
@@ -81,7 +99,7 @@ void getJson(const char * payload, size_t length) {
 
   // Test if parsing succeeds.
   if (error) {
-    Serial.print(F("deserializeJson() failed: "));
+    Serial.println(F("deserializeJson() failed!"));
     return;
   }
 
@@ -89,13 +107,20 @@ void getJson(const char * payload, size_t length) {
   //
   // Most of the time, you can rely on the implicit casts.
   // In other case, you can do root["time"].as<long>();
-  const char* huongdi = doc["huongdi"];
-  const char* khoangcach = doc["khoangcach"];
+  int huongdi = doc["DirectionCode"];
+  int khoangcach = doc["Distance"];
+  //  const char* nguoigui = doc["CreatedBy"];
 
   // Print values.
+  Serial.print("Hướng đi: ");
   Serial.println(huongdi);
+  Serial.print("Khoảng cách: ");
   Serial.println(khoangcach);
+  //  Serial.println(nguoigui);
 
+  //    while(1){             //keep the program running and never end
+  //    counter(3);
+  //    }
 }
 
 void setup() {
@@ -123,13 +148,14 @@ void setup() {
   if (useSSL) {
     client.beginSSL(host, port, path, sslFingerprint);
   } else {
-    client.begin(host, port, path);  //kết nối server cục bộ, thay host = 192.168.x.x tùy theo địa chỉ ip
-    //      client.begin(host);              //kết nối server heroku
+//    client.begin(host, port, path);  //kết nối server cục bộ, thay host = 192.168.x.x tùy theo địa chỉ ip
+          client.begin(host);              //kết nối server heroku
     Serial.println("Ket noi thanh cong");
   }
 
   delay(1000);
   client.emit("connection", "\"ESP8266 connected !!!!\"");
+  client.emit("get-commands", "\"Get commands from Esp8266\"");
   client.on("welcome", socket_Connected);
   client.on("go-ahead", forward);
   client.on("go-back", backward);
@@ -137,6 +163,7 @@ void setup() {
   client.on("right", right);
   client.on("stop", Stop);
   client.on("commands-from-user", getJson);
+  client.on("send-commands-from-server", getJson);
 }
 
 void loop() {
